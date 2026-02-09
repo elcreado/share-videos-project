@@ -18,23 +18,22 @@ export default function DashboardPage() {
         async function loadUser() {
             try {
                 const { user } = await getCurrentUser();
-                if (!user) {
-                    router.push("/");
-                    return;
-                }
                 setUser(user);
 
-                // Load profile
-                const { data: profileData } = await supabase
-                    .from("profiles")
-                    .select("*")
-                    .eq("id", user.id)
-                    .single();
+                // Load profile only if user exists
+                if (user) {
+                    const { data: profileData } = await supabase
+                        .from("profiles")
+                        .select("*")
+                        .eq("id", user.id)
+                        .single();
 
-                setProfile(profileData);
+                    setProfile(profileData);
+                }
             } catch (error) {
                 console.error("Error loading user:", error);
-                router.push("/");
+                // Don't redirect, just set user to null
+                setUser(null);
             } finally {
                 setLoading(false);
             }
@@ -44,7 +43,13 @@ export default function DashboardPage() {
 
     const handleLogout = async () => {
         await logout();
-        router.push("/");
+        setUser(null);
+        setProfile(null);
+        router.refresh();
+    };
+
+    const handleLoginClick = () => {
+        router.push("/login");
     };
 
     if (loading) {
@@ -57,8 +62,6 @@ export default function DashboardPage() {
             </div>
         );
     }
-
-    if (!user) return null;
 
     return (
         <div className="min-h-screen bg-[#121212] text-white">
@@ -75,39 +78,52 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* User info */}
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
-                                {profile?.avatar_url ? (
-                                    <img
-                                        src={profile.avatar_url}
-                                        alt={profile.nombre || user.email}
-                                        className="w-full h-full rounded-full object-cover"
-                                    />
-                                ) : (
-                                    profile?.nombre?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"
-                                )}
-                            </div>
-                            <span className="text-sm text-gray-300 hidden sm:inline">
-                                {profile?.nombre || user.email}
-                            </span>
-                        </div>
+                        {user ? (
+                            <>
+                                {/* User info */}
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
+                                        {profile?.avatar_url ? (
+                                            <img
+                                                src={profile.avatar_url}
+                                                alt={profile.nombre || user.email}
+                                                className="w-full h-full rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            profile?.nombre?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"
+                                        )}
+                                    </div>
+                                    <span className="text-sm text-gray-300 hidden sm:inline">
+                                        {profile?.nombre || user.email}
+                                    </span>
+                                </div>
 
-                        {/* Logout button */}
-                        <button
-                            onClick={handleLogout}
-                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Cerrar sesión"
-                        >
-                            <LogOut className="w-5 h-5" />
-                        </button>
+                                {/* Logout button */}
+                                <button
+                                    onClick={handleLogout}
+                                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                    title="Cerrar sesión"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                </button>
+                            </>
+                        ) : (
+                            /* Login button */
+                            <button
+                                onClick={handleLoginClick}
+                                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-2"
+                            >
+                                <User className="w-4 h-4" />
+                                <span>Iniciar Sesión</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </nav>
 
             {/* Main content */}
             <main className="relative">
-                <SocialFeed userId={user.id} />
+                <SocialFeed userId={user?.id || null} />
             </main>
         </div>
     );

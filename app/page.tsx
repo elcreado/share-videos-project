@@ -1,9 +1,9 @@
-import Login from "@/components/login";
+import DashboardPage from "@/app/dashboard/page";
 
 export default function Home() {
   return (
     <main>
-      <Login />
+      <DashboardPage />
     </main>
   );
 }

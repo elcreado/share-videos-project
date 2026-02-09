@@ -15,7 +15,7 @@ import VideoEmbed from "./VideoEmbed";
 
 interface VideoCardProps {
     video: VideoWithProfile;
-    currentUserId: string;
+    currentUserId: string | null;
     onDelete?: () => void;
     onVoteChange?: () => void;
 }
@@ -31,6 +31,11 @@ export default function VideoCard({
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleVote = async (tipo: 1 | -1) => {
+        if (!currentUserId) {
+            alert("Debes iniciar sesión para votar");
+            return;
+        }
+
         try {
             const result = await addVote(video.id, currentUserId, tipo);
 
@@ -56,6 +61,11 @@ export default function VideoCard({
     };
 
     const handleDelete = async () => {
+        if (!currentUserId) {
+            alert("Debes iniciar sesión para eliminar un video");
+            return;
+        }
+
         if (!confirm("¿Estás seguro de eliminar este video?")) return;
 
         setIsDeleting(true);
@@ -95,7 +105,7 @@ export default function VideoCard({
         return "🎬";
     };
 
-    const isOwner = video.user_id === currentUserId;
+    const isOwner = currentUserId && video.user_id === currentUserId;
 
     return (
         <div className="bg-[#1E1E1E] rounded-xl p-5 border border-white/5 hover:border-purple-500/30 transition-all shadow-lg">

@@ -8,7 +8,7 @@ import VideoCard from "./VideoCard";
 import { Plus, Link as LinkIcon, Loader2 } from "lucide-react";
 
 interface SocialFeedProps {
-    userId: string;
+    userId: string | null;
 }
 
 export default function SocialFeed({ userId }: SocialFeedProps) {
@@ -27,17 +27,28 @@ export default function SocialFeed({ userId }: SocialFeedProps) {
             setLoading(true);
             const videosData = await getVideos(50);
 
-            // Get user votes for all videos
-            const videoIds = videosData.map((v) => v.id);
-            const userVotes = await getUserVotesForVideos(videoIds, userId);
+            // Get user votes for all videos only if user is logged in
+            if (userId) {
 
-            // Add user votes to videos
-            const videosWithUserVotes = videosData.map((video) => ({
-                ...video,
-                userVote: userVotes[video.id] || null,
-            }));
+                const videoIds = videosData.map((v) => v.id);
+                const userVotes = await getUserVotesForVideos(videoIds, userId);
 
-            setVideos(videosWithUserVotes);
+                // Add user votes to videos
+                const videosWithUserVotes = videosData.map((video) => ({
+                    ...video,
+                    userVote: userVotes[video.id] || null,
+                }));
+
+                setVideos(videosWithUserVotes);
+            } else {
+                // No user votes for unauthenticated users
+                const videosWithoutUserVotes = videosData.map((video) => ({
+                    ...video,
+                    userVote: null,
+                }));
+
+                setVideos(videosWithoutUserVotes);
+            }
         } catch (error) {
             console.error("Error loading videos:", error);
         } finally {
@@ -51,6 +62,11 @@ export default function SocialFeed({ userId }: SocialFeedProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!userId) {
+            alert("Debes iniciar sesión para publicar un video");
+            return;
+        }
 
         if (!link.trim()) return;
 
@@ -80,7 +96,13 @@ export default function SocialFeed({ userId }: SocialFeedProps) {
             <div className="bg-[#1E1E1E] rounded-xl p-5 border border-white/5 shadow-lg">
                 {!showForm ? (
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            if (!userId) {
+                                alert("Debes iniciar sesión para publicar un video");
+                                return;
+                            }
+                            setShowForm(true);
+                        }}
                         className="w-full flex items-center justify-center gap-2 py-3 text-gray-400 hover:text-purple-400 transition-colors"
                     >
                         <Plus className="w-5 h-5" />
@@ -158,7 +180,7 @@ export default function SocialFeed({ userId }: SocialFeedProps) {
                 )}
             </div>
 
-            {/* Videos feed */}
+            {/* Videos feed - create and manage all videos */}
             {loading ? (
                 <div className="flex items-center justify-center py-12">
                     <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />

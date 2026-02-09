@@ -41,9 +41,7 @@ export async function getVideos(limit: number = 20, offset: number = 0) {
     // Get videos with profile info and calculate scores
     const { data: videos, error } = await supabase
         .from("videos")
-        .select(
-            `
-      *,
+        .select(`*,
       profiles (
         id,
         nombre,
