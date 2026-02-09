@@ -1,21 +1,15 @@
-/**
- * Utility functions for parsing video URLs and generating embed codes
- */
-
 export interface VideoEmbedInfo {
     platform: "tiktok" | "youtube" | "instagram" | "unknown";
     embedUrl: string | null;
     videoId: string | null;
 }
 
-/**
- * Parse a video URL and extract embed information
- */
 export function parseVideoUrl(url: string): VideoEmbedInfo {
     try {
         const urlObj = new URL(url);
 
-        // TikTok
+        // TikTok videos
+
         if (urlObj.hostname.includes("tiktok.com")) {
             // TikTok URLs: https://www.tiktok.com/@username/video/1234567890
             const match = url.match(/\/video\/(\d+)/);
@@ -23,13 +17,14 @@ export function parseVideoUrl(url: string): VideoEmbedInfo {
                 const videoId = match[1];
                 return {
                     platform: "tiktok",
-                    embedUrl: `https://www.tiktok.com/embed/v2/${videoId}`,
+                    embedUrl: `https://www.tiktok.com/embed/v3/${videoId}`,
                     videoId,
                 };
             }
         }
 
-        // YouTube (including Shorts)
+        // YouTube videos
+
         if (
             urlObj.hostname.includes("youtube.com") ||
             urlObj.hostname.includes("youtu.be")
@@ -60,6 +55,7 @@ export function parseVideoUrl(url: string): VideoEmbedInfo {
         }
 
         // Instagram Reels
+
         if (urlObj.hostname.includes("instagram.com")) {
             // Instagram Reels: https://www.instagram.com/reel/CODE/ or /p/CODE/
             const match = url.match(/\/(reel|p)\/([a-zA-Z0-9_-]+)/);
