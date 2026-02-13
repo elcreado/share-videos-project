@@ -22,7 +22,7 @@ export interface Voto {
     creado_en: string | null;
 }
 
-export interface Comentario {
+export interface Comment {
     id: string;
     video_id: string | null;
     user_id: string | null;
@@ -34,4 +34,8 @@ export interface VideoWithProfile extends Video {
     profiles: Profile;
     score: number;
     userVote: number | null;
+}
+
+export interface CommentWithProfile extends Comment {
+    profiles: Profile;
 }

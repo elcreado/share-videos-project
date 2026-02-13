@@ -2,6 +2,7 @@
 
 import { VideoWithProfile } from "@/types/database";
 import { addVote } from "@/lib/services/votos";
+import { createComment } from "@/lib/services/comments";
 import { deleteVideo } from "@/lib/services/videos";
 import { useState } from "react";
 import {
@@ -12,6 +13,7 @@ import {
     Clock,
 } from "lucide-react";
 import VideoEmbed from "./VideoEmbed";
+import CommentsSection from "./CommentsSection";
 
 interface VideoCardProps {
     video: VideoWithProfile;
@@ -106,6 +108,15 @@ export default function VideoCard({
     };
 
     const isOwner = currentUserId && video.user_id === currentUserId;
+
+    const handleAddComment = async (content: string) => {
+        if (!currentUserId) {
+            alert("Debes iniciar sesión para comentar");
+            return;
+        }
+
+        await createComment(currentUserId, video.id, content);
+    };
 
     return (
         <div className="bg-[#1E1E1E] rounded-xl p-5 border border-white/5 hover:border-purple-500/30 transition-all shadow-lg">
@@ -210,6 +221,14 @@ export default function VideoCard({
                     <ArrowDown className="w-4 h-4" />
                 </button>
             </div>
+
+            {/* Comments */}
+            <CommentsSection
+                videoId={video.id}
+                currentUserId={currentUserId}
+                onCommentSubmit={handleAddComment}
+            />
+
         </div>
     );
 }
